@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin</title>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="admin-panel">
+    <h1>Admin Panel</h1>
+    <a href="/add" class="add-post-link">Ajouter un nouvel article</a>
+    <table id="post-table">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Titre</th>
+          <th>Catégorie</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Admin post will show dynamically here -->
+      </tbody>
+    </table>
+    <a href="/" class="admin-back-link">Retour à l'accueil</a>
+  </div>
+
+  <!-- JS -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      fetch("/posts")
+        .then((response) => response.json())
+        .then((posts) => {
+          const postsTableBody = document.querySelector("#post-table tbody")
+          postsTableBody.innerHTML = posts.map(
+            (post) => `
+              <tr>
+                <td>${post.image ? `<img src="${post.image}" alt="${post.title}" />` : "Pas d'image"}</td>
+                <td>${post.title}</td>
+                <td>${post.category || "Pas de catégorie"}</td>
+                <td>
+                  <button class="delete-button" data-id="${post.id}">Supprimer</button>
+                </td>
+              </tr>
+            `
+          ).join("")
+
+          // Delete post Event Listener
+          document.querySelectorAll(".delete-button").forEach((button) => {
+            button.addEventListener("click", function () {
+              const postId = this.getAttribute("data-id")
+              fetch(`/delete/${postId}`, {
+                method: "POST"
+              })
+                .then((response) => {
+                  if (!response.ok) {
+                    throw new Error("Network response was not ok")
+                  }
+                  // Remove the row from table
+                  this.closest("tr").remove()
+                })
+                .catch((error) => {
+                  console.error("There was a problem with the fetch operation", error)
+                })
+            })
+          })
+        })
+    })
+  </script>
+</body>
+</html>
